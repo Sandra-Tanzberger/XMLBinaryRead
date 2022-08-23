@@ -1,0 +1,74 @@
+<%
+'On Error Resume Next
+Dim xml1
+Dim xml2
+
+'get binary data from request object
+varbytes = Request.BinaryRead(Request.TotalBytes)
+'Response.BinaryWrite(varbytes)
+
+Set objXMLDOM = Server.CreateObject("msxml2.DOMDocument.3.0") 
+objXMLDOM.async = False 
+'objXMLDOM.load(varbytes) 
+'objXMLDOM.save(Server.MapPath("/MortgageSelect_ElectronicLeads/xmldoc/testxml1.xml"))
+
+'return string from binary data
+varReturnString = Stream_BinaryToString(varbytes, "us-ascii")
+
+'split on & to get individual data
+varArray = Split(varReturnString, "&")
+
+'get rid of the test "xml1=" and "xml2="
+xml1 = Mid(Cstr(varArray(0)), 6, Len(varArray(0)))
+xml2 = Mid(Cstr(varArray(1)), 6, Len(varArray(1)))
+
+'load to xmldom and save to file
+objXMLDOM.loadXml(xml1) 
+objXMLDOM.save(Server.MapPath("/MortgageSelect_ElectronicLeads/xmldoc/xml1.xml"))'replace path
+
+objXMLDOM.loadXml(xml2) 
+objXMLDOM.save(Server.MapPath("/MortgageSelect_ElectronicLeads/xmldoc/xml2.xml"))'replace path
+
+Function Stream_BinaryToString(Binary, CharSet)
+  Const adTypeText = 2
+  Const adTypeBinary = 1
+  
+  'Create Stream object
+  Dim BinaryStream 'As New Stream
+  Set BinaryStream = CreateObject("ADODB.Stream")
+  
+  'Specify stream type - we want To save text/string data.
+  BinaryStream.Type = adTypeBinary
+  
+  'Open the stream And write text/string data To the object
+  BinaryStream.Open
+  BinaryStream.Write Binary
+  
+  
+  'Change stream type To binary
+  BinaryStream.Position = 0
+  BinaryStream.Type = adTypeText
+  
+  'Specify charset For the source text (unicode) data.
+  If Len(CharSet) > 0 Then
+    BinaryStream.CharSet = CharSet
+  Else
+    BinaryStream.CharSet = "us-ascii"
+  End If
+  
+  'Open the stream And get binary data from the object
+  Stream_BinaryToString = BinaryStream.ReadText
+End Function
+
+%>
+<html>
+	<body>
+		<table width="100%" cellpadding="2" align="center" border="1">
+			<tr>
+				<td width="50%" align="center"><%=xml1%></td>
+				
+				<td width="50%" align="center"><%=xml2%></td>
+			</tr>
+		</table>
+	</body>
+</html>
